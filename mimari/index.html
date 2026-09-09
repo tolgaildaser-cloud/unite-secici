@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="TMS — tasarım otomasyonu mimarisi (konsept çalışma).">
+<style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Tasarım Otomasyonu Mimarisi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#080B10; --panel:#10161E; --panel-2:#161E28; --edge:#212B37;
+  --text:#E8EDF2; --text-dim:#9AA7B4; --text-faint:#6B7885; --heading:#F2F6FA;
+  --rule:#4FA8DE; --rule-bg:rgba(79,168,222,.11);
+  --ai:#E5732B;   --ai-bg:rgba(229,115,43,.11);
+  --lift:0 18px 50px -26px rgba(0,0,0,.9);
+}
+:root[data-theme="light"]{
+  --ground:#F1F4F7; --panel:#FFFFFF; --panel-2:#E9EEF3; --edge:#D5DEE7;
+  --text:#16202B; --text-dim:#4E5C6A; --text-faint:#7A8896; --heading:#0C1015;
+  --rule:#1B6FB8; --rule-bg:rgba(27,111,184,.09);
+  --ai:#C4571A;   --ai-bg:rgba(196,87,26,.09);
+  --lift:0 14px 36px -28px rgba(16,32,48,.4);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#F1F4F7; --panel:#FFFFFF; --panel-2:#E9EEF3; --edge:#D5DEE7;
+    --text:#16202B; --text-dim:#4E5C6A; --text-faint:#7A8896; --heading:#0C1015;
+    --rule:#1B6FB8; --rule-bg:rgba(27,111,184,.09);
+    --ai:#C4571A;   --ai-bg:rgba(196,87,26,.09);
+    --lift:0 14px 36px -28px rgba(16,32,48,.4);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--text);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif; font-size:15px; line-height:1.62}
+h1,h2,h3,h4{font-family:"Archivo",sans-serif; color:var(--heading); margin:0;
+  letter-spacing:-.025em; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+.k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--text-faint); display:block}
+.concept-bar{background:var(--ai); color:#1A0E05; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  padding:8px 24px; text-align:center}
+:root[data-theme="light"] .concept-bar{color:#fff}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .concept-bar{color:#fff}}
+
+/* başlık */
+.top{border-bottom:1px solid var(--edge); background:var(--panel); padding:38px 0 34px}
+.brand{display:flex; align-items:baseline; gap:8px; margin-bottom:16px}
+.brand b{font-family:"Archivo",sans-serif; font-weight:800; font-size:21px;
+  letter-spacing:-.04em; color:var(--heading)}
+.brand span{font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.18em;
+  color:var(--text-faint)}
+.top h1{font-size:clamp(28px,3.8vw,42px); line-height:1.04; font-weight:800; margin-bottom:14px}
+.top .lede{color:var(--text-dim); max-width:64ch; margin:0; font-size:16.5px}
+.thesis{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--edge);
+  border:1px solid var(--edge); margin-top:26px}
+.thesis > div{padding:20px 22px}
+.th-rule{background:var(--rule-bg)}
+.th-ai{background:var(--ai-bg)}
+.thesis .pct{font-family:"Archivo",sans-serif; font-size:27px; font-weight:800;
+  line-height:1; letter-spacing:-.03em}
+.thesis .est{display:block; font-family:"IBM Plex Mono",monospace; font-size:9.5px;
+  letter-spacing:.1em; color:var(--text-faint); margin-top:7px; text-transform:uppercase}
+.quote .blank{font-family:"IBM Plex Mono",monospace; font-size:16px; color:var(--text);
+  background:var(--ai-bg); border:1px dashed var(--ai); padding:13px 15px; margin:13px 0}
+.quote .blank b{color:var(--ai)}
+.srcs{margin-top:24px; border:1px solid var(--edge)}
+.src-row{display:grid; grid-template-columns:1.5fr 1fr; gap:16px; padding:13px 18px;
+  border-bottom:1px solid var(--edge); font-size:12.5px}
+.src-row:last-child{border-bottom:0}
+.src-row.h{background:var(--panel)}
+.src-row.h span{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-faint)}
+.src-row b{color:var(--heading); font-weight:600}
+.src-row em{font-style:normal; color:var(--text-dim)}
+.src-row .no-d{color:var(--ai); font-weight:600}
+.src-row .est-d{color:var(--text-dim)}
+.src-row .yes-d{color:var(--rule)}
+.th-rule .pct{color:var(--rule)} .th-ai .pct{color:var(--ai)}
+.thesis h3{font-size:15px; font-weight:700; margin:9px 0 6px}
+.thesis p{font-size:13px; color:var(--text-dim); margin:0; line-height:1.5}
+
+section{padding:58px 0; border-top:1px solid var(--edge)}
+.sec-head{max-width:66ch; margin-bottom:30px}
+.sec-head h2{font-size:clamp(24px,2.8vw,32px); font-weight:700; margin:10px 0 11px; line-height:1.14}
+.sec-head p{color:var(--text-dim); margin:0; font-size:15.5px}
+
+/* şema */
+.dgm-wrap{border:1px solid var(--edge); background:var(--panel); box-shadow:var(--lift); padding:8px}
+.dgm{width:100%; height:auto; display:block}
+.legend{display:flex; gap:22px; flex-wrap:wrap; margin-top:16px; padding-top:14px;
+  border-top:1px solid var(--edge)}
+.lg{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim)}
+.lg i{width:13px; height:13px; border:1.5px solid; display:block; flex:0 0 auto}
+.lg.r i{border-color:var(--rule); background:var(--rule-bg)}
+.lg.a i{border-color:var(--ai); background:var(--ai-bg)}
+.lg.h i{border-color:var(--heading); background:transparent; border-width:2.5px}
+.lg.x i{border-color:var(--text-faint); border-style:dashed; background:transparent}
+
+/* svg sınıfları */
+.dgm text{font-family:"IBM Plex Sans",sans-serif}
+.dgm .bx{stroke-width:1.4}
+.dgm .bx-r{fill:var(--rule-bg); stroke:var(--rule)}
+.dgm .bx-a{fill:var(--ai-bg); stroke:var(--ai)}
+.dgm .bx-x{fill:none; stroke:var(--text-faint); stroke-dasharray:4 3; stroke-width:1.2}
+.dgm .bx-h{fill:none; stroke:var(--heading); stroke-width:2.4}
+.dgm .bx-hi{fill:var(--rule-bg); stroke:var(--rule); stroke-width:2.6}
+.dgm .tg{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; font-weight:600}
+.dgm .tg-r{fill:var(--rule)} .dgm .tg-a{fill:var(--ai)}
+.dgm .ti{font-size:14px; font-weight:600; fill:var(--heading)}
+.dgm .sb{font-size:11.5px; fill:var(--text-dim)}
+.dgm .fl{font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--text-faint)}
+.dgm .ar{fill:none; stroke:var(--text-faint); stroke-width:1.4}
+.dgm .arh{fill:var(--text-faint)}
+.dgm .note{font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--rule); font-weight:600}
+.dgm .hu{font-size:15px; font-weight:700; fill:var(--heading)}
+
+/* adım tablosu */
+.tbl-scroll{overflow-x:auto; border:1px solid var(--edge)}
+table{width:100%; border-collapse:collapse; min-width:680px}
+th,td{text-align:left; padding:12px 14px; border-bottom:1px solid var(--edge); font-size:13px;
+  vertical-align:top}
+th{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-faint); background:var(--panel); font-weight:500}
+td.no{font-family:"IBM Plex Mono",monospace; color:var(--text-faint); width:34px}
+td.st b{display:block; color:var(--heading); font-size:13.5px}
+td.st span{color:var(--text-faint); font-size:12px}
+td.vd{white-space:nowrap; font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600}
+.tag{display:inline-block; padding:3px 8px; border:1px solid; font-size:10.5px;
+  font-family:"IBM Plex Mono",monospace; letter-spacing:.08em}
+.tag-r{color:var(--rule); border-color:var(--rule); background:var(--rule-bg)}
+.tag-a{color:var(--ai); border-color:var(--ai); background:var(--ai-bg)}
+tbody tr:hover td{background:var(--panel)}
+tr.big td{background:var(--rule-bg)}
+tr.big:hover td{background:var(--rule-bg)}
+
+/* vurgu bloğu */
+.quote{border-left:3px solid var(--rule); background:var(--panel); padding:24px 26px; margin:26px 0}
+.quote p{margin:0; font-size:16.5px; color:var(--text); line-height:1.6}
+.quote p + p{margin-top:12px; font-size:14.5px; color:var(--text-dim)}
+.quote.warn{border-left-color:var(--ai)}
+
+/* iki kolon kartlar */
+.duo{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--edge); border:1px solid var(--edge)}
+.duo > div{background:var(--ground); padding:26px}
+.duo h3{font-size:16.5px; font-weight:700; margin-bottom:10px}
+.duo p{font-size:13.5px; color:var(--text-dim); margin:0 0 10px; line-height:1.6}
+.duo ol,.duo ul{margin:0; padding-left:19px; font-size:13.5px; color:var(--text-dim); line-height:1.75}
+.duo li b{color:var(--text)}
+.ok h3{color:var(--rule)} .no-h h3{color:var(--ai)}
+
+/* ön koşul tablosu */
+.pre{display:flex; flex-direction:column; gap:1px; background:var(--edge); border:1px solid var(--edge)}
+.pre-row{display:grid; grid-template-columns:1.1fr 1.3fr 1.3fr; gap:18px; background:var(--ground); padding:16px 20px}
+.pre-row.h{background:var(--panel)}
+.pre-row.h span{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-faint)}
+.pre-row b{font-size:13.5px; color:var(--heading); font-weight:600}
+.pre-row p{margin:0; font-size:12.5px; color:var(--text-dim); line-height:1.5}
+.pre-row .bad{color:var(--ai)}
+.pre-row.free b{color:var(--rule)}
+
+/* metrikler */
+.mets{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--edge); border:1px solid var(--edge)}
+.met{background:var(--ground); padding:20px}
+.met b{display:block; font-size:14px; color:var(--heading); margin-bottom:5px}
+.met p{margin:0; font-size:12.5px; color:var(--text-dim); line-height:1.5}
+.met.key{background:var(--rule-bg)} .met.key b{color:var(--rule)}
+
+/* üç cümle */
+.says{display:flex; flex-direction:column; gap:14px}
+.say{display:flex; gap:18px; background:var(--panel); border:1px solid var(--edge); padding:22px 24px}
+.say .n{font-family:"Archivo",sans-serif; font-size:26px; font-weight:800; color:var(--rule);
+  line-height:1; flex:0 0 auto; letter-spacing:-.04em}
+.say p{margin:0; font-size:15px; line-height:1.6; color:var(--text)}
+footer{border-top:1px solid var(--edge); padding:26px 0 42px; font-size:12px; color:var(--text-faint)}
+.foot{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap}
+footer a{color:var(--rule); text-decoration:none}
+
+@media (max-width:900px){
+  .thesis,.duo,.mets{grid-template-columns:1fr}
+  .pre-row{grid-template-columns:1fr; gap:7px}
+  .pre-row.h{display:none}
+}
+@media (max-width:540px){ .wrap{padding:0 16px} section{padding:42px 0} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="concept-bar">Konsept çalışma · TMS'e sunulan öneri</div>
+
+<div class="top"><div class="wrap">
+  <div class="brand"><b>TMS</b><span lang="en">INDUSTRIAL REFRIGERATION</span></div>
+  <h1>Tasarımı otomatikleştirmenin mimarisi</h1>
+  <p class="lede">Ünite seçimi bittiğinde iş tasarım ekibine geçiyor: komponent seçimi, CAD, elektrik
+    şeması, BOM, doküman. Sorunun cevabı şu — bu zincirin büyük kısmı yapay zeka değil,
+    kuralcı otomasyon. Ve iyi haber: o kısım daha ucuz, daha hızlı, daha güvenilir.</p>
+
+  <div class="thesis">
+    <div class="th-rule">
+      <div class="pct">Büyük kısmı</div>
+      <h3>Kuralcı otomasyon</h3>
+      <p>Komponent seçimi, parametrik CAD, elektrik şeması, BOM. Tam doğru ve tekrarlanabilir
+        olmak zorunda — determinizm burada kısıt değil, gereklilik.</p>
+      <span class="est">Pay TMS'te ölçülmedi · değerlendirme</span>
+    </div>
+    <div class="th-ai">
+      <div class="pct">Bir kısmı</div>
+      <h3>Yapay zeka</h3>
+      <p>Dağınık şartnameyi okuyup yapılandırmak, 20 yıllık arşivi hatırlamak, doküman üretmek,
+        tutarsızlığı fark etmek. AI'nın gerçekten üstün olduğu yerler.</p>
+      <span class="est">Pay TMS'te ölçülmedi · değerlendirme</span>
+    </div>
+  </div>
+</div></div>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Mimari</span>
+    <h2>Zincirin tamamı ve her adımın doğru aracı</h2>
+    <p>Müşterinin gönderdiği dağınık metinden imalat dosyasına kadar. Renk, o adımın
+      kuralcı mı yapay zeka mı olduğunu gösteriyor.</p>
+  </div>
+
+  <div class="dgm-wrap">
+  <svg class="dgm" viewBox="0 0 900 1010" role="img" aria-labelledby="dt dd">
+    <title id="dt">Tasarım otomasyonu akış şeması</title>
+    <desc id="dd">Müşteri girdisinden mühendis onayına kadar yedi aşamalı akış; her aşama
+      kuralcı otomasyon ya da yapay zeka olarak işaretlenmiş.</desc>
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" class="arh"/>
+      </marker>
+    </defs>
+
+    <!-- 1 müşteri girdisi -->
+    <rect x="180" y="14" width="540" height="60" class="bx bx-x"/>
+    <text x="450" y="40" class="ti" text-anchor="middle">Müşteri girdisi</text>
+    <text x="450" y="59" class="sb" text-anchor="middle">PDF · e-posta · telefon notu · Excel — altı dilde</text>
+    <path d="M450 74 V112" class="ar" marker-end="url(#a1)"/>
+    <text x="462" y="97" class="fl">dağınık metin</text>
+
+    <!-- 2 LLM şartname okuma -->
+    <rect x="180" y="116" width="540" height="72" class="bx bx-a"/>
+    <text x="200" y="140" class="tg tg-a">[ YAPAY ZEKA ]</text>
+    <text x="200" y="162" class="ti">Şartname okuma</text>
+    <text x="200" y="180" class="sb">Sıcaklık, hacim, güvenlik sınıfı, standart, teslim — parametreye çevirir</text>
+    <path d="M450 188 V226" class="ar" marker-end="url(#a1)"/>
+    <text x="462" y="211" class="fl">yapılandırılmış parametreler</text>
+
+    <!-- 3 seçim motoru -->
+    <rect x="180" y="230" width="540" height="72" class="bx bx-hi"/>
+    <text x="200" y="254" class="tg tg-r">[ KURAL ]</text>
+    <text x="200" y="276" class="ti">Seçim motoru — ön boyutlandırma</text>
+    <text x="200" y="294" class="sb">Isı yükü, kapasite bandı, seri ve model, opsiyonlar</text>
+    <text x="712" y="266" class="note" text-anchor="end">◀ BUGÜN YAPILAN ARAÇ</text>
+
+    <!-- ayrım -->
+    <path d="M450 302 V326" class="ar"/>
+    <path d="M240 326 H660" class="ar"/>
+    <path d="M240 326 V356" class="ar" marker-end="url(#a1)"/>
+    <path d="M660 326 V356" class="ar" marker-end="url(#a1)"/>
+
+    <!-- 4a komponent seçimi -->
+    <rect x="60" y="360" width="360" height="92" class="bx bx-r"/>
+    <text x="78" y="384" class="tg tg-r">[ KURAL ]</text>
+    <text x="78" y="406" class="ti">Komponent seçimi</text>
+    <text x="78" y="424" class="sb">Kompresör, batarya, fan, valf, kontrolör</text>
+    <text x="78" y="441" class="sb">Unilab + üretici performans tabloları</text>
+
+    <!-- 4b RAG -->
+    <rect x="480" y="360" width="360" height="92" class="bx bx-a"/>
+    <text x="498" y="384" class="tg tg-a">[ YAPAY ZEKA · RAG ]</text>
+    <text x="498" y="406" class="ti">Geçmiş proje getirme</text>
+    <text x="498" y="424" class="sb">“Bu şartnameye en yakın 5 eski proje”</text>
+    <text x="498" y="441" class="sb">20 yıllık arşiv + BOM'ları</text>
+
+    <!-- birleşme -->
+    <path d="M240 452 V486" class="ar"/>
+    <path d="M660 452 V486" class="ar"/>
+    <path d="M240 486 H660" class="ar"/>
+    <path d="M450 486 V516" class="ar" marker-end="url(#a1)"/>
+
+    <!-- 5 parametrik konfigüratör -->
+    <rect x="140" y="520" width="620" height="96" class="bx bx-r"/>
+    <text x="160" y="544" class="tg tg-r">[ KURAL · PARAMETRİK ]</text>
+    <text x="160" y="567" class="ti">Konfigüratör — SolidWorks + EPlan</text>
+    <text x="160" y="586" class="sb">3B model · elektrik şeması · BOM · sac DXF · montaj resmi</text>
+    <text x="160" y="604" class="sb">Asıl kazanç burada — ve bu bir yapay zeka işi değil</text>
+    <path d="M450 616 V654" class="ar" marker-end="url(#a1)"/>
+
+    <!-- 6 doküman -->
+    <rect x="180" y="658" width="540" height="76" class="bx bx-a"/>
+    <text x="200" y="682" class="tg tg-a">[ YAPAY ZEKA ]</text>
+    <text x="200" y="704" class="ti">Doküman üretimi</text>
+    <text x="200" y="722" class="sb">Teklif şartnamesi · kullanım kılavuzu · test protokolü · CE dosyası — 6 dil</text>
+    <path d="M450 734 V772" class="ar" marker-end="url(#a1)"/>
+
+    <!-- 7 denetçi -->
+    <rect x="180" y="776" width="540" height="76" class="bx bx-a"/>
+    <text x="200" y="800" class="tg tg-a">[ YAPAY ZEKA · DENETÇİ ]</text>
+    <text x="200" y="822" class="ti">Tutarlılık kontrolü</text>
+    <text x="200" y="840" class="sb">“Liman projesi ama korozyon paketi seçilmemiş” — uyarır, karar vermez</text>
+    <path d="M450 852 V892" class="ar" marker-end="url(#a1)"/>
+
+    <!-- 8 mühendis -->
+    <rect x="180" y="896" width="540" height="86" class="bx bx-h"/>
+    <text x="450" y="928" class="hu" text-anchor="middle">MÜHENDİS — onaylar veya düzeltir</text>
+    <text x="450" y="950" class="sb" text-anchor="middle">İmza burada. Basınçlı devre, elektrik projesi, ATEX sertifikası,</text>
+    <text x="450" y="968" class="sb" text-anchor="middle">CE beyanı — sorumluluğu bir model üstlenemez</text>
+  </svg>
+
+  <div class="legend">
+    <span class="lg r"><i></i> Kuralcı otomasyon — deterministik</span>
+    <span class="lg a"><i></i> Yapay zeka — LLM / RAG</span>
+    <span class="lg h"><i></i> İnsan onay noktası</span>
+    <span class="lg x"><i></i> Dış girdi</span>
+  </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Adım adım</span>
+    <h2>Hangi adım hangi araçla — ve neden</h2>
+  </div>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th></th><th>Adım</th><th>Araç</th><th>Gerekçe</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="no">01</td>
+        <td class="st"><b>Şartname okuma</b><span>Müşteri metni → parametre</span></td>
+        <td class="vd"><span class="tag tag-a">YAPAY ZEKA</span></td>
+        <td>Yapılandırılmamış girdiyle deterministik motor arasındaki kapı. LLM'in en net üstünlüğü.</td>
+      </tr>
+      <tr>
+        <td class="no">02</td>
+        <td class="st"><b>Seçim / boyutlandırma</b><span>Yük, seri, model</span></td>
+        <td class="vd"><span class="tag tag-r">KURAL</span></td>
+        <td>Fizik hesabı ve katalog kısıtı. Tekrarlanabilir olmak zorunda.</td>
+      </tr>
+      <tr class="big">
+        <td class="no">03</td>
+        <td class="st"><b>Komponent seçimi</b><span>Kompresör, batarya, fan, valf</span></td>
+        <td class="vd"><span class="tag tag-r">KURAL</span></td>
+        <td>Üretici performans verisinde çalışma noktasına göre tablo eşleme. Unilab zaten var.</td>
+      </tr>
+      <tr class="big">
+        <td class="no">04</td>
+        <td class="st"><b>Mekanik + elektrik tasarım</b><span>CAD, şema, BOM, DXF</span></td>
+        <td class="vd"><span class="tag tag-r">KURAL</span></td>
+        <td><b>İşin en büyük parçası.</b> BOM'da %95 doğru olan bir model işe yaramaz değil — tehlikelidir; imalata sessiz hata gönderir.</td>
+      </tr>
+      <tr>
+        <td class="no">05</td>
+        <td class="st"><b>Doküman</b><span>Teklif, kılavuz, test, CE</span></td>
+        <td class="vd"><span class="tag tag-a">YAPAY ZEKA</span></td>
+        <td>Metin üretimi ve altı dile çeviri. Görünür, ölçülebilir, kimsenin işini tehdit etmeyen kazanç.</td>
+      </tr>
+      <tr>
+        <td class="no">06</td>
+        <td class="st"><b>Kontrol</b><span>Tutarlılık, eksik tespiti</span></td>
+        <td class="vd"><span class="tag tag-a">YAPAY ZEKA</span></td>
+        <td>Uyarı listesi üretir, karar vermez. Kıdemli mühendisin gözünü çoğaltır, yerine geçmez.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <div class="quote">
+    <p>Adım 3 ve 4 — yani işin en büyük kısmı — yapay zeka değil, <b>kuralcı otomasyondur.</b></p>
+    <p>“Tasarımı AI yapsın” hedefinin büyük bölümü aslında parametrik CAD ve kural motorudur.
+      Bu ayrım yapılmazsa, kuralla üç ayda çözülecek iş yapay zekayla iki yılda çözülemez.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Tasarım ilkesi</span>
+    <h2>Mühendis onay noktasında kalır</h2>
+    <p>Kurulan şey “AI tasarım yapıyor” değil, <b>“AI %80'ini hazırlıyor, mühendis onaylıyor.”</b>
+      Bu bir yumuşatma değil — iki sert gerekçesi var.</p>
+  </div>
+  <div class="duo">
+    <div>
+      <h3>① Sorumluluk</h3>
+      <p>Basınçlı devre, elektrik projesi, ATEX sertifikası, CE beyanı — hepsinin arkasında
+        bir imza var. O imzayı bir model atamaz. Sorumlu mühendislik devredilemez.</p>
+    </div>
+    <div>
+      <h3>② Benimseme</h3>
+      <p>Tasarım ekibi bunu “yerimize geçiyor” diye okursa <b>sessizce sabote eder</b> —
+        veri vermez, çıktıyı güvenilmez bulur, eski yöntemle paralel çalışır.
+        Proje teknik değil <b>sosyal</b> sebeple ölür.</p>
+      <p>Doğru çerçeve: <i>“aynı şeyi 40. kez çizmekten kurtulacaksın, Ar-Ge yapacaksın.”</i>
+        Ve bu çerçeve dürüst — çünkü Ar-Ge bugün Tasarım'ın içinde ve sipariş baskısı altında eziliyor.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Ön koşul</span>
+    <h2>Hiçbir katman veri hazır olmadan çalışmaz</h2>
+    <p>Kimse duymak istemez ama mimarinin tamamı veri disiplinine bağlı.
+      Bu yüzden ilk faz “AI kurmak” değil, <b>“veriyi hazır etmek”</b> — ve bu bir
+      yapay zeka işi değil, operasyon işidir.</p>
+  </div>
+  <div class="pre">
+    <div class="pre-row h"><span>Katman</span><span>Ön koşul</span><span>Yoksa ne olur</span></div>
+    <div class="pre-row">
+      <b>Parametrik konfigüratör</b>
+      <p>Standart parça kütüphanesi, tutarlı adlandırma, revizyon disiplini</p>
+      <p class="bad">12 ay harcanır, sonunda “kütüphane standart değil” bulunur</p>
+    </div>
+    <div class="pre-row">
+      <b>Geçmiş proje getirme</b>
+      <p>20 yıllık arşiv tutarlı üstveriyle indekslenmiş</p>
+      <p class="bad">Alakasız proje önerir; mühendis bir kez dener, bir daha açmaz</p>
+    </div>
+    <div class="pre-row">
+      <b>Komponent seçimi</b>
+      <p>Üretici performans verisi makine-okunur biçimde</p>
+      <p class="bad">Elle tablo girme işi olduğu gibi devam eder</p>
+    </div>
+    <div class="pre-row free">
+      <b>Şartname okuma</b>
+      <p>En az veri gerektiren katman</p>
+      <p>✓ Hemen başlanabilir — bu yüzden ilk adım</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Sıralama</span>
+    <h2>Sezgi yanlış sıra söylüyor</h2>
+    <p>“En büyük kazanç konfigüratörde, oradan başla” demek projeyi öldürür.
+      Doğru sıra, en çok değeri değil <b>en çok güveni</b> önce üretir.</p>
+  </div>
+  <div class="duo">
+    <div class="ok">
+      <h3>✓ Doğru sıra</h3>
+      <ol>
+        <li><b>Şartname okuma + geçmiş proje getirme</b> — 2-6 ay. En az veri disiplini ister,
+          mühendise ilk günden fayda verir, ekip müttefik olur.
+          Ve <b>işin ne kadarının tekrar olduğunu ölçer.</b></li>
+        <li><b>Doküman üretimi</b> — paralel, düşük risk, görünür kazanç</li>
+        <li><b>Parametrik konfigüratör</b> — 6-18 ay. Asıl kazanç, ama ①'in verisiyle
+          ve en çok tekrar eden 3 ürün ailesiyle başlanır; 12 seriyle değil</li>
+        <li><b>Denetçi + servis destek asistanı</b> — paralel</li>
+      </ol>
+    </div>
+    <div class="no-h">
+      <h3>✗ Yanlış sıra</h3>
+      <p>Doğrudan konfigüratöre girmek:</p>
+      <ul>
+        <li>12 ay veri arkeolojisi</li>
+        <li>Görünür çıktı yok</li>
+        <li>6. ayda “bu proje ne oldu?” sorusu</li>
+        <li>Durur</li>
+      </ul>
+      <p style="margin-top:12px">Bu, otomasyon projelerinin klasik ölüm biçiminin aynısı.</p>
+    </div>
+  </div>
+  <div class="quote warn">
+    <p>Birinci adımın asıl çıktısı yazılım değil, <b>şu boşluğun doldurulmuş hâli:</b></p>
+    <p class="blank">Siparişlerin <b>%___</b>'i eski bir projenin varyantı.</p>
+    <p>Bu boşluk dolduğunda 18 aylık konfigüratör yatırımı kendi kendini onaylatır.
+      <b>Bu oran TMS için henüz ölçülmedi</b> — ölçmek Faz 1'in işi. Rakamı şimdi tahmin etmek,
+      projeyi yanlış temele oturtur.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Ölçüm</span>
+    <h2>Ölçülmeyen tasarruf kanıtlanamaz</h2>
+    <p>Ana gösterge <b>sipariş başına mühendislik saati.</b> Yanına dört gösterge daha.</p>
+  </div>
+  <div class="mets">
+    <div class="met key"><b>Sipariş başına mühendislik saati</b><p>Ana gösterge. Baseline ölçülmeden proje başlamaz.</p></div>
+    <div class="met"><b>Teklif hazırlama süresi</b><p>Satışın tasarıma bindirdiği görünmeyen yük.</p></div>
+    <div class="met"><b>Revizyon oranı</b><p>Baştan çizilen iş / toplam iş.</p></div>
+    <div class="met"><b>İlk seferde doğru oranı</b><p>Otomasyon kaliteyi düşürdü mü yükseltti mi.</p></div>
+    <div class="met"><b>Tasarım kuyruğunda bekleme</b><p>Üretim tıkanıklığının asıl ölçüsü.</p></div>
+    <div class="met key"><b>Ar-Ge'ye ayrılan saat</b><p>Hem başarı ölçüsü, hem 5746 Tasarım Merkezi teşvikinin belgesi. Aynı veriden çıkar.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head"><span class="k">Özet</span><h2>Üç cümle</h2></div>
+  <div class="says">
+    <div class="say"><span class="n">1</span><p>“Tasarımı AI'ya yaptıralım” dediğin işin <b>büyük kısmı aslında yapay zeka değil,
+      kuralcı otomasyon</b> — ve iyi haber şu: o kısım daha ucuz, daha hızlı ve daha güvenilir.</p></div>
+    <div class="say"><span class="n">2</span><p>AI'nın gerçekten güçlü olduğu yer, müşterinin gönderdiği dağınık şartnameyi okuyup
+      yapılandırmak ve 20 yıllık arşivi hatırlamak. <b>Oradan başlayacağız</b> — çünkü mühendisi ikna eden şey o.</p></div>
+    <div class="say"><span class="n">3</span><p>Ama hiçbiri veri hazır olmadan çalışmaz. İlk işimiz model eğitmek değil,
+      <b>ne kadarının tekrar olduğunu ölçmek.</b> O rakam çıkmadan konfigüratöre yatırım yapmayız.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Şeffaflık</span>
+    <h2>Bu sayfadaki rakamların kaynağı</h2>
+    <p>Müşteriye gösterilen bir belgede uydurma rakam olmaz. Ayrımı açıkça yazıyoruz.</p>
+  </div>
+  <div class="srcs">
+    <div class="src-row h"><span>Rakam</span><span>Kaynak</span></div>
+    <div class="src-row"><b>26.800+ ünite · 2–1600 kW · +95°C · model kapasite aralıkları</b>
+      <em class="yes-d">✓ tmsgrup.com, Eylül 2026</em></div>
+    <div class="src-row"><b>Tasarım Merkezi · Ocak 2019 · 5746 sayılı kanun</b>
+      <em class="yes-d">✓ tmsgrup.com</em></div>
+    <div class="src-row"><b>k katsayıları · %18 güneş kazancı · %20 emniyet payı · ±%25 tolerans</b>
+      <em class="est-d">◆ Mühendislik pratiğinden tipik değerler — TMS'in kendi hesap kabulleri değil</em></div>
+    <div class="src-row"><b>Kuralcı / yapay zeka payı</b>
+      <em class="est-d">◆ Değerlendirme — ölçüm değil</em></div>
+    <div class="src-row"><b>Siparişlerin ne kadarının varyant olduğu</b>
+      <em class="no-d">✗ Ölçülmedi — Faz 1'in çıktısı, boş bırakılır</em></div>
+    <div class="src-row"><b>2-6 ay · 6-18 ay süreleri</b>
+      <em class="est-d">◆ Kaba tahmin — kapsam netleştikçe revize edilir</em></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap foot">
+  <span>← <a href="../">Ünite seçici aracına dön</a></span>
+  <span class="mono">Konsept · 09.2026</span>
+</div></footer>
+
+</body>
+</html>
