@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="TMS Endüstriyel Soğutma — ünite seçici ve ön boyutlandırma aracı (konsept çalışma).">
+<style>
+  html{color-scheme:light dark}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>TMS Ünite Seçici</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#080B10; --panel:#10161E; --panel-2:#161E28; --edge:#212B37;
+  --text:#E8EDF2; --text-dim:#9AA7B4; --text-faint:#6B7885; --heading:#F2F6FA;
+  --cold:#4FA8DE; --cold-glow:rgba(79,168,222,.13);
+  --ember:#E5732B; --ember-dim:rgba(229,115,43,.12);
+  --lift:0 18px 50px -26px rgba(0,0,0,.9);
+}
+:root[data-theme="light"]{
+  --ground:#F1F4F7; --panel:#FFFFFF; --panel-2:#E9EEF3; --edge:#D5DEE7;
+  --text:#16202B; --text-dim:#4E5C6A; --text-faint:#7A8896; --heading:#0C1015;
+  --cold:#1B6FB8; --cold-glow:rgba(27,111,184,.09);
+  --ember:#C4571A; --ember-dim:rgba(196,87,26,.09);
+  --lift:0 14px 36px -28px rgba(16,32,48,.4);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#F1F4F7; --panel:#FFFFFF; --panel-2:#E9EEF3; --edge:#D5DEE7;
+    --text:#16202B; --text-dim:#4E5C6A; --text-faint:#7A8896; --heading:#0C1015;
+    --cold:#1B6FB8; --cold-glow:rgba(27,111,184,.09);
+    --ember:#C4571A; --ember-dim:rgba(196,87,26,.09);
+    --lift:0 14px 36px -28px rgba(16,32,48,.4);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--text);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif; font-size:15px; line-height:1.6}
+h1,h2,h3{font-family:"Archivo",sans-serif; color:var(--heading); margin:0; letter-spacing:-.025em; text-wrap:balance}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1140px; margin:0 auto; padding:0 24px}
+.k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--text-faint); display:block}
+
+.concept-bar{background:var(--ember); color:#1A0E05; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; padding:8px 24px; text-align:center}
+
+/* başlık */
+.top{border-bottom:1px solid var(--edge); background:var(--panel); padding:34px 0 30px}
+.top-in{display:flex; justify-content:space-between; align-items:flex-end; gap:32px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:8px; margin-bottom:14px}
+.brand b{font-family:"Archivo",sans-serif; font-weight:800; font-size:22px; letter-spacing:-.04em; color:var(--heading)}
+.brand span{font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--text-faint)}
+.top h1{font-size:clamp(27px,3.4vw,38px); line-height:1.06; font-weight:800; margin-bottom:11px}
+.top p{color:var(--text-dim); max-width:60ch; margin:0; font-size:15.5px}
+.top-meta{display:flex; flex-direction:column; gap:7px; text-align:right}
+.top-meta div{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-faint)}
+.top-meta b{color:var(--cold)}
+
+/* çalışma alanı */
+.work{display:grid; grid-template-columns:1fr .82fr; gap:1px; background:var(--edge);
+  border:1px solid var(--edge); margin:34px 0}
+.pane{background:var(--ground); padding:28px}
+.out{background:var(--panel)}
+.out-sticky{position:sticky; top:22px}
+
+.step{border-top:1px solid var(--edge); padding-top:19px; margin-top:19px}
+.step:first-child{border-top:0; padding-top:0; margin-top:0}
+.step > .k{margin-bottom:10px}
+.step .no{color:var(--cold); font-weight:600}
+.req{color:var(--ember); letter-spacing:0; text-transform:none; font-size:10px; margin-left:5px}
+
+.opts{display:flex; flex-wrap:wrap; gap:6px}
+.opt{font-size:12.5px; font-weight:500; padding:8px 12px; border:1px solid var(--edge);
+  background:var(--panel-2); color:var(--text-dim); cursor:pointer; border-radius:2px;
+  font-family:inherit; transition:border-color .15s,color .15s,background .15s}
+.opt:hover{border-color:var(--cold); color:var(--text)}
+.opt[aria-pressed="true"]{background:var(--cold); border-color:var(--cold); color:#06111B;
+  font-weight:600; box-shadow:0 0 18px -5px var(--cold)}
+:root[data-theme="light"] .opt[aria-pressed="true"]{color:#fff}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .opt[aria-pressed="true"]{color:#fff}}
+.opt:focus-visible{outline:2px solid var(--cold); outline-offset:2px}
+
+.g3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.fld label{display:block; font-size:11.5px; color:var(--text-faint); margin-bottom:5px}
+.fld .hint{font-size:10px; opacity:.75}
+.unit-in{display:flex; align-items:center; border:1px solid var(--edge); background:var(--panel-2); border-radius:2px}
+.unit-in input{width:100%; min-width:0; border:0; background:transparent; color:var(--text);
+  font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600; padding:9px 3px 9px 11px; -moz-appearance:textfield}
+.unit-in input::-webkit-outer-spin-button,.unit-in input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.unit-in input:focus{outline:none}
+.unit-in:focus-within{border-color:var(--cold); box-shadow:0 0 0 2px var(--cold-glow)}
+.unit-in span{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--text-faint); padding:0 10px 0 3px}
+.unit-in.ro{border-style:dashed; background:transparent}
+.unit-in .vol{flex:1; padding:9px 3px 9px 11px; font-size:14px; font-weight:600; color:var(--text-dim)}
+.chk{display:flex; align-items:center; gap:9px; margin-top:13px; font-size:12.5px; color:var(--text-dim); cursor:pointer}
+.chk input{accent-color:var(--cold); width:15px; height:15px}
+
+/* sonuç */
+.load-box{border:1px solid var(--cold); background:var(--cold-glow); padding:17px; margin-bottom:17px}
+.load-box .big{font-family:"Archivo",sans-serif; font-size:46px; font-weight:800; color:var(--cold);
+  line-height:1; letter-spacing:-.045em; margin-top:5px}
+.load-box .big small{font-size:19px; font-weight:600; margin-left:3px}
+.load-box .band{font-size:12.5px; color:var(--text-dim); margin-top:8px}
+.res-code{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px}
+.res-code .c{font-family:"Archivo",sans-serif; font-size:33px; font-weight:800; color:var(--cold);
+  letter-spacing:-.035em; line-height:1}
+.res-code .n{font-size:13px; color:var(--text-dim)}
+.res-why{font-size:13px; color:var(--text-dim); line-height:1.55; margin:0 0 13px}
+.res-links{display:flex; flex-wrap:wrap; gap:7px; margin:12px 0 2px}
+.res-link{display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:12px;
+  font-weight:600; padding:8px 12px; border-radius:2px; border:1px solid var(--cold);
+  color:var(--cold); background:var(--cold-glow); transition:background .15s,color .15s}
+.res-link:hover{background:var(--cold); color:#06111B}
+:root[data-theme="light"] .res-link:hover{color:#fff}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .res-link:hover{color:#fff}}
+.res-link span{font-family:"IBM Plex Mono",monospace; font-size:10.5px; opacity:.75}
+
+.blk{border-top:1px solid var(--edge); margin-top:15px; padding-top:13px}
+.blk .k{margin-bottom:9px}
+.mdl-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px;
+  background:var(--edge); border:1px solid var(--edge)}
+.mdl-list li{display:grid; grid-template-columns:auto 1fr auto; gap:9px; align-items:baseline;
+  background:var(--ground); padding:9px 10px}
+.out .mdl-list li{background:var(--panel)}
+.mdl-list .mc{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:11.5px; color:var(--text)}
+.mdl-list .ma{color:var(--text-faint); font-size:11px; line-height:1.35}
+.mdl-list .mk{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--cold); white-space:nowrap}
+.mdl-list li.pri{background:var(--cold-glow); box-shadow:inset 2px 0 0 var(--cold)}
+.mdl-list li.pri .mc{color:var(--cold)}
+.mdl-list.no .mc{color:var(--text-faint); text-decoration:line-through}
+.mdl-list.no .ma{color:var(--ember); opacity:.92}
+
+.trace ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px}
+.trace li{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--text-dim);
+  display:flex; justify-content:space-between; gap:11px; line-height:1.45}
+.trace li b{color:var(--text); font-weight:600; white-space:nowrap}
+.trace li.rule{color:var(--ember); border-left:2px solid var(--ember); padding-left:8px; display:block}
+.warn{border-left:2px solid var(--ember); background:var(--ember-dim); padding:10px 12px;
+  font-size:12px; color:var(--text-dim); margin-top:12px; line-height:1.5}
+.sum-btn{margin-top:15px; width:100%; padding:12px; font-family:inherit; font-size:12.5px; font-weight:600;
+  border:1px solid var(--edge); background:var(--panel-2); color:var(--text-dim); cursor:pointer;
+  border-radius:2px; transition:border-color .15s,color .15s}
+.sum-btn:hover{border-color:var(--cold); color:var(--cold)}
+.sum-box{margin-top:10px; border:1px solid var(--edge); background:var(--panel-2); padding:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--text-dim);
+  white-space:pre-wrap; line-height:1.6; max-height:250px; overflow:auto}
+.disc{font-size:11px; color:var(--text-faint); margin-top:13px; line-height:1.5}
+
+/* yöntem + katalog */
+section{padding:52px 0; border-top:1px solid var(--edge)}
+.sec-head{max-width:64ch; margin-bottom:26px}
+.sec-head h2{font-size:26px; font-weight:700; margin:9px 0 10px}
+.sec-head p{color:var(--text-dim); margin:0; font-size:15px}
+.meth{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--edge); border:1px solid var(--edge)}
+.meth > div{background:var(--ground); padding:22px}
+.meth h3{font-size:15px; font-weight:700; margin-bottom:9px}
+.meth p{font-size:13px; color:var(--text-dim); margin:0 0 9px; line-height:1.6}
+.eq{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--cold);
+  background:var(--panel-2); border:1px solid var(--edge); padding:11px 13px; margin:10px 0; overflow-x:auto}
+.meth ul{margin:8px 0 0; padding-left:17px; font-size:12.5px; color:var(--text-dim); line-height:1.7}
+.meth code{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--text)}
+
+.tbl-scroll{overflow-x:auto; border:1px solid var(--edge)}
+table{width:100%; border-collapse:collapse; min-width:620px}
+th,td{text-align:left; padding:10px 13px; border-bottom:1px solid var(--edge); font-size:12.5px}
+th{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--text-faint); background:var(--panel); font-weight:500}
+td.c{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--text); white-space:nowrap}
+td.n{font-family:"IBM Plex Mono",monospace; color:var(--cold); white-space:nowrap}
+td.t{font-family:"IBM Plex Mono",monospace; color:var(--text-dim); white-space:nowrap}
+tr.head-row td{background:var(--panel-2); font-family:"Archivo",sans-serif; font-weight:700;
+  color:var(--heading); font-size:13px; letter-spacing:-.01em}
+tbody tr:hover td{background:var(--panel)}
+footer{border-top:1px solid var(--edge); padding:26px 0 40px; font-size:12px; color:var(--text-faint)}
+.foot{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap}
+
+@media (max-width:940px){
+  .work{grid-template-columns:1fr}
+  .out-sticky{position:static}
+  .meth{grid-template-columns:1fr}
+  .top-meta{text-align:left}
+}
+@media (max-width:540px){ .g3{grid-template-columns:1fr 1fr} .wrap{padding:0 16px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="concept-bar">Konsept çalışma · TMS'e sunulan öneri — yayındaki resmî araç değildir</div>
+
+<div class="top"><div class="wrap top-in">
+  <div>
+    <div class="brand"><b>TMS</b><span>Industrial Refrigeration</span></div>
+    <h1>Ünite seçici ve ön boyutlandırma</h1>
+    <p>Kapasiteyi bilmenize gerek yok. Soğutulacak hacmi, gövdeyi ve sıcaklıkları girin —
+      soğutma yükü hesaplanır, uygun modeller kapasite ve ortam sıcaklığı limitine göre süzülür.</p>
+  </div>
+  <div class="top-meta">
+    <div>Katalog: <b>12 seri · 28 model</b></div>
+    <div>Kapasite: <b>2 – 1600 kW</b></div>
+    <div>Ortam: <b>−40 … +95 °C</b></div>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="work">
+    <div class="pane">
+      <div class="step">
+        <span class="k" id="l-env"><span class="no">01</span> — Neyi soğutacaksınız?</span>
+        <div class="opts" role="group" aria-labelledby="l-env" data-group="env">
+          <button class="opt" type="button" data-v="vinc" aria-pressed="true">Vinç kabini / operatör</button>
+          <button class="opt" type="button" data-v="pano" aria-pressed="false">Pano / elektrik odası</button>
+          <button class="opt" type="button" data-v="ehouse" aria-pressed="false">E-house / konteyner</button>
+          <button class="opt" type="button" data-v="bess" aria-pressed="false">Batarya deposu (BESS)</button>
+          <button class="opt" type="button" data-v="proses" aria-pressed="false">Proses suyu</button>
+          <button class="opt" type="button" data-v="silo" aria-pressed="false">Tahıl silosu</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="k" id="l-haz"><span class="no">02</span> — Ortam koşulu</span>
+        <div class="opts" role="group" aria-labelledby="l-haz" data-group="haz">
+          <button class="opt" type="button" data-v="std" aria-pressed="false">Standart endüstriyel</button>
+          <button class="opt" type="button" data-v="sicak" aria-pressed="true">Aşırı sıcak (&gt;55°C)</button>
+          <button class="opt" type="button" data-v="atex" aria-pressed="false">Patlayıcı / ATEX</button>
+          <button class="opt" type="button" data-v="marine" aria-pressed="false">Denizcilik / tuzlu</button>
+        </div>
+      </div>
+
+      <div class="step" id="zoneWrap" hidden>
+        <span class="k" id="l-zone"><span class="no">02b</span> — Bölge sınıfı<span class="req">ATEX için zorunlu</span></span>
+        <div class="opts" role="group" aria-labelledby="l-zone" data-group="zone">
+          <button class="opt" type="button" data-v="z1" aria-pressed="false">Zone 1 / 21</button>
+          <button class="opt" type="button" data-v="z2" aria-pressed="false">Zone 2 / 22</button>
+          <button class="opt" type="button" data-v="zbil" aria-pressed="false">Bilmiyorum</button>
+        </div>
+      </div>
+
+      <div class="step" id="calcBlock">
+        <span class="k"><span class="no">03</span> — Soğutulacak hacim</span>
+        <div class="g3">
+          <div class="fld"><label for="i-w">En</label>
+            <div class="unit-in"><input id="i-w" type="number" value="2.0" min=".3" max="80" step=".1"><span>m</span></div></div>
+          <div class="fld"><label for="i-d">Boy</label>
+            <div class="unit-in"><input id="i-d" type="number" value="2.0" min=".3" max="80" step=".1"><span>m</span></div></div>
+          <div class="fld"><label for="i-h">Yükseklik</label>
+            <div class="unit-in"><input id="i-h" type="number" value="2.2" min=".3" max="25" step=".1"><span>m</span></div></div>
+        </div>
+        <div class="g3" style="margin-top:10px">
+          <div class="fld" style="grid-column:span 2"><label>Dış yüzey alanı <span class="hint">yükü bu belirler</span></label>
+            <div class="unit-in ro"><span class="vol mono" id="o-area">—</span><span>m²</span></div></div>
+          <div class="fld"><label>Hacim</label>
+            <div class="unit-in ro"><span class="vol mono" id="o-vol">—</span><span>m³</span></div></div>
+        </div>
+
+        <span class="k" style="margin:17px 0 9px" id="l-shell"><span class="no">04</span> — Gövde / yalıtım</span>
+        <div class="opts" role="group" aria-labelledby="l-shell" data-group="shell">
+          <button class="opt" type="button" data-v="steel" aria-pressed="false">Yalıtımsız çelik</button>
+          <button class="opt" type="button" data-v="panel" aria-pressed="true">Yalıtımlı panel</button>
+          <button class="opt" type="button" data-v="alu" aria-pressed="false">Alüminyum</button>
+        </div>
+
+        <span class="k" style="margin:17px 0 9px"><span class="no">05</span> — Sıcaklık ve iç yük</span>
+        <div class="g3">
+          <div class="fld"><label for="i-to">Dış ortam</label>
+            <div class="unit-in"><input id="i-to" type="number" value="95" min="-40" max="120" step="1"><span>°C</span></div></div>
+          <div class="fld"><label for="i-ti">Hedef iç</label>
+            <div class="unit-in"><input id="i-ti" type="number" value="24" min="-15" max="45" step="1"><span>°C</span></div></div>
+          <div class="fld"><label for="i-q">Ekipman yükü</label>
+            <div class="unit-in"><input id="i-q" type="number" value="0.5" min="0" max="3000" step=".1"><span>kW</span></div></div>
+        </div>
+        <div class="g3" style="margin-top:10px">
+          <div class="fld" style="grid-column:span 2"><label for="i-ach">Hava değişimi <span class="hint">kapı trafiği / sızıntı · kapalı pano = 0</span></label>
+            <div class="unit-in"><input id="i-ach" type="number" value="0" min="0" max="20" step=".1"><span>1/h</span></div></div>
+        </div>
+        <label class="chk"><input type="checkbox" id="i-sun"> Dış mekân · doğrudan güneş maruziyeti</label>
+      </div>
+    </div>
+
+    <div class="pane out"><div class="out-sticky">
+      <span class="k" style="margin-bottom:12px">Sonuç</span>
+      <div id="result"></div>
+    </div></div>
+  </div>
+</div>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Yöntem</span>
+    <h2>Hesap nasıl yapılıyor</h2>
+    <p>Mahfaza ve mahal soğutmasında yük iki kaynaktan gelir: zarftan geçen ısı ve içeride üretilen ısı.
+      Aşağıdaki yöntem endüstriyel mahfaza soğutması pratiğinin sadeleştirilmiş hâlidir.</p>
+  </div>
+  <div class="meth">
+    <div>
+      <h3>Toplam soğutma yükü</h3>
+      <div class="eq">Q = ( k·A·ΔT + Q<sub>güneş</sub> + Q<sub>hava</sub> + Q<sub>ekipman</sub> ) × 1,20</div>
+      <ul>
+        <li><code>A</code> — dış yüzey alanı, 2(en·boy + en·yük + boy·yük)</li>
+        <li><code>ΔT</code> — dış ortam ile hedef iç sıcaklık farkı</li>
+        <li><code>Q<sub>güneş</sub></code> — dış mekân + güneş için iletim yükünün %18'i</li>
+        <li><code>Q<sub>hava</sub></code> — V · ACH · ΔT · 0,000335 (hava değişimi)</li>
+        <li><code>× 1,20</code> — %20 emniyet payı</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Isı geçiş katsayısı k</h3>
+      <p>Gövde tipine göre alınan tipik değerler, W/(m²·K):</p>
+      <ul>
+        <li><code>5,5</code> — yalıtımsız çelik sac gövde</li>
+        <li><code>1,5</code> — yalıtımlı sandviç panel</li>
+        <li><code>12</code> — alüminyum gövde</li>
+      </ul>
+      <h3 style="margin-top:16px">Taban metrekaresi neden girdi değil</h3>
+      <p>“Metrekare başına watt” kuralı konfor kliması yaklaşımıdır. Endüstriyel mahfazada yükü
+        <b>taban alanı değil, dış yüzey alanı ve içerideki ekipman</b> belirler. Hacim yalnızca hava
+        değişimi ve basınçlandırma (APU, m³/h) hesabına girer.</p>
+    </div>
+  </div>
+  <div class="warn" style="margin-top:20px">
+    <b>Sınırlar.</b> Sonuç bir ön tahmindir, tolerans ±%25. Nem yükü, proses debisi, cihaz yerleşimi,
+    yedeklilik ve hava dağıtımı bu hesaba dahil değildir. Nihai kapasite ve model seçimi TMS
+    mühendislik ekibinin hesabıyla belirlenir.
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-head">
+    <span class="k">Katalog</span>
+    <h2>Model aralıkları</h2>
+    <p>Seçim motorunun kullandığı veri. Kaynak: tmsgrup.com ürün sayfaları, Eylül 2026.</p>
+  </div>
+  <div class="tbl-scroll"><table>
+    <thead><tr><th>Model</th><th>Tip</th><th>Kapasite</th><th>Ortam sıcaklığı</th></tr></thead>
+    <tbody id="catBody"></tbody>
+  </table></div>
+</div></section>
+
+<footer><div class="wrap foot">
+  <span>TMS Endüstriyel Soğutma San. Tic. A.Ş. · Ramazanoğlu Mh. Ensar Cd. No:26/1 Pendik, İstanbul</span>
+  <span class="mono">Konsept · 09.2026</span>
+</div></footer>
+
+<script>
+(function(){
+  var pick = {env:"vinc", haz:"sicak", zone:null, shell:"panel"};
+
+  /* ── ÜRÜN KATALOĞU — tmsgrup.com ürün sayfaları, 09.2026 ── */
+  var CAT = {
+    VKS:{url:"vks-serisi", ad:"Vinç kabin ve elektrik odası soğutucuları", models:[
+      {m:"VKS-VS", ad:"Split tip",            kw:[2.5,48], tmax:95, tmin:null},
+      {m:"VKS-VP", ad:"Paket / monoblok tip", kw:[2.5,28], tmax:95, tmin:null},
+      {m:"VKS-VC", ad:"Kompakt tip",          kw:[2,8],    tmax:95, tmin:null},
+      {m:"VKS-VM", ad:"Orta hizmet tip",      kw:[2,8],    tmax:80, tmin:-15}
+    ]},
+    IAC:{url:"iac-serisi", ad:"Endüstriyel klima üniteleri", models:[
+      {m:"IAC-ISA",  ad:"Hava soğutmalı split",   kw:[3,130], tmax:55, tmin:-25},
+      {m:"IAC-ISW",  ad:"Su soğutmalı split",     kw:[3,136], tmax:55, tmin:-25, su:true},
+      {m:"IAC-ISCA", ad:"Hava soğutmalı SCU",     kw:[5,120], tmax:55, tmin:-25},
+      {m:"IAC-ISCW", ad:"Su soğutmalı SCU",       kw:[5,120], tmax:55, tmin:-25, su:true},
+      {m:"IAC-IRA",  ad:"Hava soğutmalı rooftop", kw:[5,250], tmax:55, tmin:-25},
+      {m:"IAC-IRW",  ad:"Su soğutmalı rooftop",   kw:[5,250], tmax:55, tmin:-25, su:true},
+      {m:"IAC-ISCM", ad:"Marin tip paket",        kw:[7,55],  tmax:55, tmin:-25, marin:true}
+    ]},
+    PKS:{url:"pks-serisi", ad:"Ağır hizmet outdoor pano klima sistemleri", models:[
+      {m:"PKS-PO", ad:"Ağır hizmet outdoor pano", kw:[2,4], tmax:80, tmin:-10}
+    ]},
+    HSC:{url:"hsc-serisi", ad:"Hava ve su soğutmalı proses chiller üniteleri", models:[
+      {m:"HSC", ad:"Proses chiller", kw:[5,1600], tmax:95, tmin:-25}
+    ]},
+    VI:{url:"vi-serisi", ad:"Inrow tip endüstriyel klimalar", models:[
+      {m:"VI", ad:"Inrow tip", kw:[4,22], tmax:80, tmin:null}
+    ]},
+    WMU:{url:"wmu-serisi", ad:"Duvara montajlı endüstriyel üniteler", models:[
+      {m:"WMU", ad:"Duvar tipi", kw:[8,100], tmax:null, tmin:null}
+    ]},
+    MAC:{url:"mac-serisi", ad:"Mobil soğutma üniteleri", models:[
+      {m:"MAC", ad:"Mobil ünite", kw:[6.76,6.76], tmax:55, tmin:-15}
+    ]},
+    TKS:{url:"tks-serisi", ad:"Tahıl soğutma ve kurutma üniteleri", models:[
+      {m:"TKS", ad:"Tahıl soğutma", kw:null, tmax:55, tmin:null,
+       not:"Kapasite silo hacmi ve ürün tipiyle belirlenir"}
+    ]},
+    ATEX:{url:"atex-serisi", ad:"Patlamaya dayanıklı soğutma üniteleri", models:[
+      {m:"ATEX", ad:"Zone 1 / Zone 2 sertifikalı", kw:null, tmax:null, tmin:null,
+       not:"Kapasite ve model, bölge sınıfı ve gaz/toz grubuyla belirlenir"}
+    ]},
+    APU:{url:"apu-serisi", ad:"Hava basınçlandırma ve filtreleme üniteleri", models:[
+      {m:"APU", ad:"Basınçlandırma · 50–6400 m³/h", kw:null, tmax:95, tmin:-40,
+       not:"Kapasite kW değil m³/h hava debisiyle seçilir"}
+    ]},
+    FCU:{url:"fcu-serisi", ad:"Fan coil üniteler", models:[
+      {m:"FCU", ad:"Fan coil · soğutma", kw:[5,60], tmax:null, tmin:null, su:true}
+    ]},
+    DWE:{url:"dwe-serisi", ad:"Drenaj suyu buharlaştırıcıları", models:[
+      {m:"DWE", ad:"Drenaj buharlaştırıcı · 3–6 L/h", kw:null, tmax:null, tmin:null,
+       not:"Kapasite L/h drenaj debisiyle seçilir"}
+    ]}
+  };
+
+  var K = {steel:{k:5.5, ad:"yalıtımsız çelik"}, panel:{k:1.5, ad:"yalıtımlı panel"}, alu:{k:12, ad:"alüminyum"}};
+  var BANDS = [2,3,4,5,6,8,10,14,18,24,30,40,55,75,100,140,180,250,350,500,700,1000,1300,1600];
+  var SIZED = {vinc:1, pano:1, ehouse:1, bess:1};
+
+  function el(id){ return document.getElementById(id); }
+  function num(id,d){ var v = parseFloat(el(id).value); return isFinite(v) ? v : d; }
+  function fmt(n,d){ return n.toLocaleString("tr-TR",{minimumFractionDigits:d, maximumFractionDigits:d}); }
+
+  function load(){
+    var w=num("i-w",2), d=num("i-d",2), h=num("i-h",2.2);
+    var To=num("i-to",95), Ti=num("i-ti",24), Qi=Math.max(num("i-q",0),0);
+    var k=K[pick.shell].k;
+    var A=2*(w*d + w*h + d*h), V=w*d*h, dT=Math.max(To-Ti,0);
+    var Qt=k*A*dT/1000;
+    var Qs=el("i-sun").checked ? Qt*0.18 : 0;
+    var ach=Math.max(num("i-ach",0),0);
+    var Qv=V*ach*dT*0.000335;
+    var Q=(Qt+Qs+Qv+Qi)*1.20;
+    return {A:A,V:V,dT:dT,k:k,Qt:Qt,Qs:Qs,Qv:Qv,ach:ach,Qi:Qi,Q:Q,To:To,
+            band:BANDS.filter(function(b){return b>=Q;})[0] || 1600, over:Q>1600};
+  }
+
+  function decide(L){
+    var e=pick.env, h=pick.haz, r=null;
+    if(h==="atex"){
+      r={sers:["ATEX"], why:"Patlayıcı ortam sınıflandırması diğer tüm seçim kriterlerinin önüne geçer. Ünite, bölge sınıfına ve gaz/toz grubuna göre sertifikalı olarak projelendirilir.",
+         rule:"KURAL — ATEX bölgesi seri seçimini belirler; kapasite ve gövde kriterleri ikincildir."};
+    } else if(e==="vinc"){
+      r={sers:["VKS"], why:"Operatör kabini ve sürücülerin bulunduğu elektrik odası birlikte soğutulur; sıcaklık eşiği aşıldığında vincin durmasını önler."
+        + (h==="sicak"?" 95°C'ye kadar ortam sıcaklığında çalışacak konfigürasyon seçilir.":"")
+        + (h==="marine"?" Liman ve tersane vinçlerinde tuzlu hava için korozyona dayanıklı gövde ve kaplamalı batarya uygulanır.":"")};
+    } else if(e==="pano"){
+      r = (h==="sicak")
+        ? {sers:["PKS"], why:"Dış ortamda ve yüksek sıcaklıkta çalışan panolar için ağır hizmet tipi ünite; toz ve sıcaklık yükü birlikte hesaplanır."}
+        : {sers:["PKS","WMU"], why:"Pano hacmi ve iç ısı yüküne göre pano tipi (PKS) ya da mahal soğutan duvar tipi (WMU) ünite seçilir."
+          + (h==="marine"?" Tuzlu ortam için korozyona dayanıklı gövde ve kaplamalı batarya seçilir.":"")};
+    } else if(e==="ehouse"){
+      r={sers:["VI","IAC"], why:"Konteyner ve e-house uygulamalarında ekipman sıralarına yakın soğutma (inrow) ya da mahal tipi ünite kullanılır; yedeklilik ihtiyacı ayrıca değerlendirilir."};
+    } else if(e==="bess"){
+      r={sers:["VI","IAC"], why:"Batarya hücrelerinin dar sıcaklık bandında tutulması ve termal kaçış riskinin yönetilmesi için hassas kontrollü iklimlendirme uygulanır."};
+    } else if(e==="proses"){
+      r={sers:["HSC"], why:"Proses suyu soğutmasında kapasite; su giriş-çıkış sıcaklıkları ve debiye göre belirlenir. Hava ya da su soğutmalı kondenser seçimi tesis altyapısına bağlıdır."};
+    } else if(e==="silo"){
+      r={sers:["TKS"], why:"Silo hacmi ve ürün tipine göre kapasite hesaplanır. Amaç, ilaç kullanmadan sıcaklık ve nemi kontrol ederek depolama kaybını azaltmaktır."};
+    }
+    if(!r) return null;
+    r.opts=[];
+    if(h==="marine") r.opts.push("Korozyona dayanıklı gövde + kaplamalı batarya (C5-M)");
+    if(h==="sicak")  r.opts.push("Yüksek ortam sıcaklığı paketi · takviye kondenser");
+    if(e==="pano"||e==="ehouse") r.opts.push("Filtre sınıfı ve toz koruması (IP / EN 60529)");
+    if(L.Q>60) r.opts.push("N+1 yedeklilik değerlendirmesi");
+    r.opts.push("Modbus / uzaktan izleme");
+    return r;
+  }
+
+  function match(sers,Q,To,sized){
+    var ok=[], no=[];
+    sers.forEach(function(ser){
+      (CAT[ser].models||[]).forEach(function(md){
+        var o={ser:ser,m:md.m,ad:md.ad,kw:md.kw,not:md.not,su:md.su,marin:md.marin};
+        if(md.tmax!=null && To>md.tmax){ o.red="ortam üst limiti +"+md.tmax+"°C · sahada "+To+"°C"; no.push(o); return; }
+        if(md.tmin!=null && To<md.tmin){ o.red="ortam alt limiti "+md.tmin+"°C · sahada "+To+"°C"; no.push(o); return; }
+        if(sized && md.kw){
+          if(Q>md.kw[1]){ o.red="kapasite üst sınırı "+md.kw[1]+" kW · gereken "+fmt(Q,1)+" kW"; no.push(o); return; }
+          if(Q<md.kw[0]){ o.red="kapasite alt sınırı "+md.kw[0]+" kW · gereken "+fmt(Q,1)+" kW"; no.push(o); return; }
+        }
+        ok.push(o);
+      });
+    });
+    ok.sort(function(a,b){
+      if(!a.kw) return 1; if(!b.kw) return -1;
+      return (a.kw[1]-a.kw[0]) - (b.kw[1]-b.kw[0]);
+    });
+    return {ok:ok, no:no};
+  }
+
+  function link(ser){
+    return '<a class="res-link" href="https://tmsgrup.com/tr/'+CAT[ser].url+
+           '/" target="_blank" rel="noopener">'+ser+' Serisi <span>&#8599;</span></a>';
+  }
+  function chosen(id){
+    var b = document.querySelector('[data-group="'+id+'"] [aria-pressed="true"]');
+    return b ? b.textContent.trim() : "—";
+  }
+
+  function render(){
+    el("zoneWrap").hidden = (pick.haz !== "atex");
+    var sized = !!SIZED[pick.env];
+    var cb = el("calcBlock");
+    cb.style.opacity = sized ? "1" : ".42";
+    cb.style.pointerEvents = sized ? "auto" : "none";
+
+    var L = load();
+    el("o-area").textContent = fmt(L.A,1);
+    el("o-vol").textContent  = fmt(L.V,1);
+
+    var r = decide(L);
+    var box = el("result");
+    if(!r){ box.innerHTML = '<p class="disc">Bir uygulama seçin.</p>'; return; }
+
+    var M = match(r.sers, L.Q, L.To, sized), best = M.ok[0], html = "";
+
+    if(sized){
+      html += '<div class="load-box"><span class="k">Hesaplanan soğutma yükü</span>'+
+              '<div class="big">'+fmt(L.Q,1)+'<small>kW</small></div>'+
+              '<div class="band">Kapasite basamağı: <b>'+L.band+' kW</b>'+
+              (L.over?' · tek ünite sınırı aşıldı, çoklu ünite gerekir':'')+'</div></div>';
+    }
+
+    html += '<div class="res-code"><span class="c">'+(best?best.m:r.sers.join(" / "))+'</span>'+
+            '<span class="n">'+(best?best.ad+' · '+best.ser+' Serisi':CAT[r.sers[0]].ad)+'</span></div>'+
+            '<p class="res-why">'+r.why+'</p>';
+
+    if(M.ok.length){
+      html += '<div class="blk"><span class="k">Uygun modeller</span><ul class="mdl-list">';
+      M.ok.forEach(function(o,i){
+        html += '<li'+(i===0?' class="pri"':'')+'><span class="mc">'+o.m+'</span>'+
+          '<span class="ma">'+o.ad+(o.su?' · su soğutmalı':'')+(o.marin?' · marin':'')+'</span>'+
+          '<span class="mk">'+(o.kw?fmt(o.kw[0],1)+'–'+o.kw[1]+' kW':'—')+'</span></li>';
+      });
+      html += '</ul><div class="res-links">';
+      r.sers.forEach(function(x){ html += link(x); });
+      html += '</div></div>';
+    } else {
+      html += '<div class="warn"><b>Standart model bulunamadı.</b> Bu koşullar mevcut ürün '+
+              'aralıklarının dışında — özel üretim (tailor made) kapsamında değerlendirilir.</div>'+
+              '<div class="res-links">'+r.sers.map(link).join("")+'</div>';
+    }
+
+    if(M.no.length){
+      html += '<div class="blk"><span class="k">Elenen modeller · gerekçesiyle</span><ul class="mdl-list no">';
+      M.no.forEach(function(o){
+        html += '<li><span class="mc">'+o.m+'</span><span class="ma">'+o.red+'</span><span class="mk"></span></li>';
+      });
+      html += '</ul></div>';
+    }
+
+    if(best && best.not) html += '<div class="warn">'+best.not+'.</div>';
+    if(pick.haz==="atex" && (!pick.zone || pick.zone==="zbil")){
+      html += '<div class="warn"><b>Eksik bilgi:</b> bölge sınıfı (Zone) ve gaz/toz grubu olmadan '+
+              'sertifikalı ünite belirlenemez. Bilinmiyorsa tesisin patlamadan korunma dokümanına bakılır.</div>';
+    }
+    if(sized && L.dT>70){
+      html += '<div class="warn"><b>Yüksek ΔT:</b> '+fmt(L.dT,0)+' K fark standart üniteler için sınır '+
+              'değerlerdedir. Takviye kondenser ve yüksek ortam sıcaklığı paketi gerekebilir.</div>';
+    }
+
+    html += '<div class="blk trace"><span class="k">Hesap izi</span><ul>';
+    if(r.rule) html += '<li class="rule">'+r.rule+'</li>';
+    if(sized){
+      html += '<li>Dış yüzey alanı A<b>'+fmt(L.A,1)+' m²</b></li>'+
+              '<li>Sıcaklık farkı ΔT<b>'+fmt(L.dT,0)+' K</b></li>'+
+              '<li>k · '+K[pick.shell].ad+'<b>'+fmt(L.k,1)+' W/m²K</b></li>'+
+              '<li>İletim yükü k·A·ΔT<b>'+fmt(L.Qt,2)+' kW</b></li>';
+      if(L.Qs>0) html += '<li>Güneş kazancı (+%18)<b>'+fmt(L.Qs,2)+' kW</b></li>';
+      if(L.Qv>0) html += '<li>Hava değişimi '+fmt(L.V,0)+' m³ × '+fmt(L.ach,1)+'/h<b>'+fmt(L.Qv,2)+' kW</b></li>';
+      html += '<li>İç ekipman yükü<b>'+fmt(L.Qi,2)+' kW</b></li>'+
+              '<li>Emniyet payı<b>+%20</b></li>'+
+              '<li>Toplam<b>'+fmt(L.Q,2)+' kW</b></li>';
+    } else {
+      html += '<li class="rule">Bu uygulamada kapasite hacim hesabıyla çıkmaz — proses debisi, '+
+              'ürün miktarı ve çevrim koşulları gerekir. Mühendislik ekibi hesaplar.</li>';
+    }
+    html += '</ul></div>';
+
+    if(r.opts.length){
+      html += '<div class="blk trace"><span class="k">Değerlendirilecek opsiyonlar</span><ul>';
+      r.opts.forEach(function(o){ html += '<li>'+o+'</li>'; });
+      html += '</ul></div>';
+    }
+
+    html += '<button class="sum-btn" type="button" id="sumBtn">Seçim özetini çıkar · teklif için</button>'+
+            '<div id="sumBox" hidden></div>'+
+            '<p class="disc">Ön tahmin, tolerans ±%25. Nihai kapasite ve model TMS mühendislik '+
+            'ekibinin hesabıyla belirlenir.</p>';
+
+    box.innerHTML = html;
+
+    el("sumBtn").addEventListener("click", function(){
+      var bx = el("sumBox"), btn = el("sumBtn");
+      if(!bx.hidden){ bx.hidden = true; btn.textContent = "Seçim özetini çıkar · teklif için"; return; }
+      var t = "TMS — ÖN SEÇİM ÖZETİ\n"+
+        "Ref  : TMS-"+Date.now().toString(36).toUpperCase().slice(-6)+"\n"+
+        "Tarih: "+new Date().toLocaleDateString("tr-TR")+"\n"+
+        "──────────────────────────────\n"+
+        "Uygulama      : "+chosen("env")+"\n"+
+        "Ortam koşulu  : "+chosen("haz")+"\n"+
+        (pick.haz==="atex" ? "Bölge sınıfı  : "+chosen("zone")+"\n" : "");
+      if(sized){
+        t += "Hacim         : "+num("i-w",0)+" x "+num("i-d",0)+" x "+num("i-h",0)+" m  ("+fmt(L.V,1)+" m³)\n"+
+             "Yüzey alanı   : "+fmt(L.A,1)+" m²\n"+
+             "Gövde         : "+K[pick.shell].ad+"  (k="+fmt(L.k,1)+" W/m²K)\n"+
+             "Sıcaklık      : dış "+L.To+"°C / iç "+num("i-ti",0)+"°C  (ΔT "+fmt(L.dT,0)+" K)\n"+
+             "Ekipman yükü  : "+fmt(L.Qi,2)+" kW\n"+
+             "Hava değişimi : "+fmt(L.ach,1)+" 1/h\n"+
+             "Güneş         : "+(el("i-sun").checked?"var":"yok")+"\n"+
+             "──────────────────────────────\n"+
+             "HESAPLANAN YÜK: "+fmt(L.Q,1)+" kW\n"+
+             "KAPASİTE BANDI: "+L.band+" kW\n";
+      }
+      t += "ÖNERİLEN MODEL: "+(best ? best.m+" ("+best.ad+")" : r.sers.join(" / ")+" — özel üretim")+"\n"+
+           "SERİ          : "+r.sers.join(" / ")+"\n";
+      if(M.ok.length>1) t += "Alternatifler : "+M.ok.slice(1).map(function(o){return o.m;}).join(", ")+"\n";
+      t += "Opsiyonlar    : "+r.opts.join(" · ")+"\n"+
+           "──────────────────────────────\n"+
+           "Ön tahmin (±%25). Nihai seçim mühendislik hesabıyla.";
+      bx.className = "sum-box"; bx.textContent = t; bx.hidden = false;
+      btn.textContent = "Özeti gizle";
+      if(navigator.clipboard) navigator.clipboard.writeText(t).catch(function(){});
+    });
+  }
+
+  /* katalog tablosu */
+  (function(){
+    var rows = "";
+    Object.keys(CAT).forEach(function(ser){
+      var c = CAT[ser];
+      rows += '<tr class="head-row"><td colspan="4">'+ser+' Serisi — '+c.ad+'</td></tr>';
+      c.models.forEach(function(m){
+        var cap = m.kw ? (m.kw[0]===m.kw[1] ? fmt(m.kw[0],2)+" kW" : fmt(m.kw[0],1)+" – "+m.kw[1]+" kW")
+                       : (m.not ? "—" : "");
+        var tt = (m.tmin!=null?m.tmin+"°C":"") + (m.tmin!=null&&m.tmax!=null?" … ":"") +
+                 (m.tmax!=null?"+"+m.tmax+"°C":"") || "—";
+        rows += '<tr><td class="c">'+m.m+'</td><td>'+m.ad+'</td><td class="n">'+cap+
+                '</td><td class="t">'+tt+'</td></tr>';
+      });
+    });
+    document.getElementById("catBody").innerHTML = rows;
+  })();
+
+  document.querySelectorAll(".opts").forEach(function(g){
+    var key = g.getAttribute("data-group");
+    g.querySelectorAll(".opt").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var v = btn.getAttribute("data-v"), same = pick[key]===v;
+        g.querySelectorAll(".opt").forEach(function(b){ b.setAttribute("aria-pressed","false"); });
+        if(same && key!=="env" && key!=="shell"){ pick[key]=null; }
+        else { pick[key]=v; btn.setAttribute("aria-pressed","true"); }
+        if(key==="haz" && v!=="atex") pick.zone=null;
+        render();
+      });
+    });
+  });
+  ["i-w","i-d","i-h","i-to","i-ti","i-q","i-ach"].forEach(function(id){
+    el(id).addEventListener("input", render);
+  });
+  el("i-sun").addEventListener("change", render);
+  render();
+})();
+</script>
+
+</body>
+</html>
